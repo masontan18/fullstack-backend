@@ -27,7 +27,13 @@ const createNewUser = async (req, res) => {
       },
     });
     if (foundUser) {
-      return res.sendStatus(409);
+      return res.status(400).json({ "message": "duplicate email" });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ "message": "password should be at least 8 characters" });
+    }
+    if (!(email.includes("@"))) {
+      return res.status(400).json({ "message": "please enter an valid email" })
     }
     const hashedPwd = await bcrypt.hash(password, 10);
     const result = await prisma.user.create({
@@ -56,7 +62,7 @@ const updateUser = async (req, res) => {
       },
     });
     if (!foundUser) {
-      return res.sendStatus(204);
+      return res.status(400).json({ "message": "no user record found" });
     }
     if (name && password) {
       const hashedPwd = await bcrypt.hash(password, 10);
@@ -112,7 +118,7 @@ const deleteUser = async (req, res) => {
       },
     });
     if (!foundUser) {
-      return res.sendStatus(204);
+      return res.status(400).json({ "message": "no user record found" });
     }
     const result = await prisma.user.delete({
       where: {
@@ -135,7 +141,7 @@ const getUser = async (req, res) => {
       },
     });
     if (!user) {
-      return res.sendStatus(204);
+      return res.status(400).json({ "message": "no user record found" });
     }
     console.log(user);
     res.json(user);
