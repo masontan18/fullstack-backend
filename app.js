@@ -7,8 +7,13 @@ import { credentials } from "./middlewares/credentials.js"
 import { authRouter } from "./routes/auth.js"
 import { refreshRouter } from "./routes/refresh.js"
 import { logoutRouter } from "./routes/logout.js"
+import morgan from "morgan" // add this
+
 
 const app = express()
+
+// third party middleware to console log the http request executed via npm install morgan
+app.use(morgan('combined'))
 
 // custom and third party middlewares for cors
 app.use(credentials)
@@ -28,5 +33,6 @@ app.use("/users", usersRouter)
 app.use("/auth", authRouter)
 app.use("/refresh", refreshRouter)
 app.use("/logout", logoutRouter)
+
 
 export { app }

@@ -53,6 +53,7 @@ const createNewUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id, name, password } = req.body;
+    console.log(id)
     if (!id) {
       return res.status(400).json({ message: "User ID is required for update" });
     }
