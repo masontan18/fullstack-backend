@@ -1,0 +1,147 @@
+import prisma from "../src/utils/prisma.js"; // use prisma client to send queries to database
+import bcrypt from "bcrypt";
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    if (users.length == 0) {
+      return res.sendStatus(204); // 204 No Content
+    }
+    res.json(users);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const createNewUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: "name, email, and password are required" });
+    }
+    const foundUser = await prisma.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+    if (foundUser) {
+      return res.sendStatus(409);
+    }
+    const hashedPwd = await bcrypt.hash(password, 10);
+    const result = await prisma.user.create({
+      data: {
+        name: name,
+        email: email,
+        password: hashedPwd,
+      },
+    });
+    console.log(`New user: ${name} added`);
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { id, name, password } = req.body;
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required for update" });
+    }
+    const foundUser = await prisma.user.findFirst({
+      where: {
+        id: Number(id),
+      },
+    });
+    if (!foundUser) {
+      return res.sendStatus(204);
+    }
+    if (name && password) {
+      const hashedPwd = await bcrypt.hash(password, 10);
+      const result = await prisma.user.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          name: name,
+          password: hashedPwd,
+        },
+      });
+      console.log("name & password updated successfully");
+      res.json(result);
+    } else if (name) {
+      const result = await prisma.user.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          name: name,
+        },
+      });
+      console.log("name updated successfully");
+      res.json(result);
+    } else if (password) {
+      const hashedPwd = await bcrypt.hash(password, 10);
+      const result = await prisma.user.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          password: hashedPwd,
+        },
+      });
+      console.log("password updated successfully");
+      res.json(result);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required for delete" });
+    }
+    const foundUser = await prisma.user.findFirst({
+      where: {
+        id: Number(id),
+      },
+    });
+    if (!foundUser) {
+      return res.sendStatus(204);
+    }
+    const result = await prisma.user.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    console.log("User deleted successfully");
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const getUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findFirst({
+      where: {
+        id: Number(id),
+      },
+    });
+    if (!user) {
+      return res.sendStatus(204);
+    }
+    console.log(user);
+    res.json(user);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export { getAllUsers, createNewUser, updateUser, deleteUser, getUser };
