@@ -8,6 +8,7 @@ import { authRouter } from "./routes/auth.js"
 import { refreshRouter } from "./routes/refresh.js"
 import { logoutRouter } from "./routes/logout.js"
 import morgan from "morgan" // add this
+import { imageRouter } from "./routes/image.js"
 
 
 const app = express()
@@ -33,6 +34,7 @@ app.use("/users", usersRouter)
 app.use("/auth", authRouter)
 app.use("/refresh", refreshRouter)
 app.use("/logout", logoutRouter)
+app.use("/image", imageRouter)
 
 
 export { app }
