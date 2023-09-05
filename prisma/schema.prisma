@@ -15,10 +15,12 @@ model User {
   name     String?
   email    String  @unique
   password String?
+  refreshToken String?
 }
 
 model Image {
   id Int @id @default(autoincrement())
+  userId Int?
   price String
   title String
   description String

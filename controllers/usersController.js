@@ -3,7 +3,11 @@ import bcrypt from "bcrypt";
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      orderBy: {
+        id: "asc"
+      }
+    });
     if (users.length == 0) {
       return res.sendStatus(204); // 204 No Content
     }
@@ -52,7 +56,7 @@ const createNewUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { id, name, password } = req.body;
+    const { id, password } = req.body;
     if (!id) {
       return res.status(400).json({ message: "User ID is required for update" });
     }
@@ -64,31 +68,8 @@ const updateUser = async (req, res) => {
     if (!foundUser) {
       return res.status(400).json({ "message": "no user record found" });
     }
-    if (name && password) {
-      const hashedPwd = await bcrypt.hash(password, 10);
-      const result = await prisma.user.update({
-        where: {
-          id: Number(id),
-        },
-        data: {
-          name: name,
-          password: hashedPwd,
-        },
-      });
-      console.log("name & password updated successfully");
-      res.json(result);
-    } else if (name) {
-      const result = await prisma.user.update({
-        where: {
-          id: Number(id),
-        },
-        data: {
-          name: name,
-        },
-      });
-      console.log("name updated successfully");
-      res.json(result);
-    } else if (password) {
+
+    if (password) {
       const hashedPwd = await bcrypt.hash(password, 10);
       const result = await prisma.user.update({
         where: {
@@ -100,7 +81,7 @@ const updateUser = async (req, res) => {
       });
       console.log("password updated successfully");
       res.json(result);
-    }
+    } 
   } catch (err) {
     console.log(err);
   }

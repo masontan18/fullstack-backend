@@ -19,18 +19,25 @@ const handleLogin = async (req, res) => {
     if (match) {
         //JWTs
         const accessToken = jwt.sign(
-            {},
+            {id: Number(foundUser.id)},
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "5m" }
+            { expiresIn: "30m" }
         )
 
         const refreshToken = jwt.sign(
-            {},
+            {id: Number(foundUser.id)},
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: "1d" }     
         )
-        res.cookie('jwt', refreshToken, { httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 }) //secure: true
-        res.json({ accessToken })
+        const result = await prisma.user.update({
+            where: {
+                id: Number(foundUser.id)
+            },
+            data: {
+                refreshToken: refreshToken
+            }
+        })
+        res.json({ "token": accessToken, "userId": foundUser.id, "refreshToken" : refreshToken })
     } else {
         res.status(401).json({ "message": "Invalid password" })
     }

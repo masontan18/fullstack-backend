@@ -6,7 +6,6 @@ import cors from "cors"
 import { credentials } from "./middlewares/credentials.js"
 import { authRouter } from "./routes/auth.js"
 import { refreshRouter } from "./routes/refresh.js"
-import { logoutRouter } from "./routes/logout.js"
 import morgan from "morgan" // add this
 import { imageRouter } from "./routes/image.js"
 
@@ -18,7 +17,7 @@ app.use(morgan('combined'))
 
 // custom and third party middlewares for cors
 app.use(credentials)
-app.use(cors(corsOptions))
+app.use(cors())
 
 // built-in middleware to handle urlencoded form data
 app.use(express.urlencoded({ extended: false }));
@@ -33,7 +32,6 @@ app.use(cookieParser());
 app.use("/users", usersRouter)
 app.use("/auth", authRouter)
 app.use("/refresh", refreshRouter)
-app.use("/logout", logoutRouter)
 app.use("/image", imageRouter)
 
 
