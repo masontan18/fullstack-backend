@@ -1,0 +1,104 @@
+Deploy backend via Paas (Platform-as-a-Service) like heroku or fly.io
+
+
+Use fly.io to deploy backend
+1. login https://fly.io/ with GitHub
+2. Terminal install fly.io via "brew install flyctl"
+3. Terminal: "fly auth login"
+4. Let fly generate setup for us OR we create it manually in new file "Dockerfile"
+5. Terminal: "flyctl launch --dockerfile Dockerfile" to create app name, choose Singapore, choose small postgres database for free,  No scale to zero, No Upstash Redish, Don't deply first. Copy postgres connection string such as postgres://next_ecomm_tkm123:BkKLUHYOn3AInxK@next-ecomm-tkm123-db.flycast:5432/next_ecomm_tkm123?sslmode=disable which below "The following secret was added to xxxx"
+6. create and paste the copied url to /secrets/postgres_connection_string. Put secret into .gitignore
+7. Set the env variables of Token secret and Stripe secret by: fly secrets set ACCESS_TOKEN_SECRET=x6ZaCwA7Pjehg.hYXzu  REFRESH_TOKEN_SECRET=WRERWEFWEwfw.r3f3F  STRIPE_SECRET=sk_test_51NmoOYDGhVvYw3qmQodX2TO5JdPYbJKyp6H4A3BpeXc6VSI6LrCcbHMTD1Mwt8FcP1jnKdjFaIg7okvCVGua68pi00jZObsGpw
+8. Edit "script" part in package.json. At least start and migrate:production are required.
+  "scripts": {
+    "start": "node server.js",
+    "start:dev": "npx dotenv -e .env.development node server.js",
+    "start:dev:watch": "npx dotenv -e .env.development nodemon server.js",
+    "migrate": "npx dotenv -e .env.development prisma migrate dev && npx dotenv -e .env.development prisma generate",
+    "migrate:production": "npx prisma migrate deploy && npx prisma generate",
+    "test": "npx dotenv -e .env.test prisma migrate deploy && npx dotenv -e .env.test jest -i"
+  },
+9. Terminal deploy now: "fly deploy"
+10. Visit https://fly.io/dashboard/personal go "apps" to get host name. next-ecomm-kmbackend is the app name created just now. Hostname is: https://next-ecomm-kmbackend.fly.dev
+
+
+
+Use cloudflare to deploy frontend same as previously
+1. Use valid backend url when declaring envnrionment variables. Include "NODE_VERSION" as environment variable also.
+2. Since this case we are using AWS S3 bucket, rmb to edit the bucket policy once we got the valid frontend url which is https://ecomm-fullstack-project.pages.dev in this case
+
+AWS S3 Bucket:
+1. create S3 bucket first, then create identifier pool with both role (need user pool)
+  After created identifier pool, go https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-1#/roles > choose unAuth role > Add permission > create inline policy > paste this and give a policy name. (Bucket in this case named next-ecomm-km123)
+
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::<YOUR_BUCKET_NAME>",
+                "arn:aws:s3:::<YOUR_BUCKET_NAME>/*"
+            ]
+        }
+    ]
+  }
+
+2. Inside s3 bucket: (Block all access other than cross account )
+  Bucket policy:
+  {
+    "Version": "2012-10-17",
+    "Id": "http referer policy example",
+    "Statement": [
+        {
+            "Sid": "Allow get requests originating from www.example.com and example.com.",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::next-ecomm-km123/*"
+        },
+        {
+            "Sid": "Allow get requests originating from www.example.com and example.com.",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::next-ecomm-km123/*",
+            "Condition": {
+                "StringLike": {
+                    "aws:Referer": [
+                        "http://localhost:5173/*",
+                        "https://ecomm-fullstack-project.pages.dev/*"
+                    ]
+                }
+            }
+        }
+    ]
+}
+
+    CORS:
+    [
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET",
+            "PUT",
+            "POST",
+            "HEAD",
+            "DELETE"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [],
+        "MaxAgeSeconds": 3000
+    }
+]
+
+

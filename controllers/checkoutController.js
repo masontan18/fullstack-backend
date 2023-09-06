@@ -27,8 +27,8 @@ const checkout = async (req, res) => {
       },
     ],
     mode: "payment",
-    success_url: "http://localhost:5173",
-    cancel_url: "http://localhost:5173",
+    success_url: "https://ecomm-fullstack-project.pages.dev",
+    cancel_url: "https://ecomm-fullstack-project.pages.dev",
   });
 
   return res.json(session.url);
